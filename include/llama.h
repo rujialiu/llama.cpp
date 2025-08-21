@@ -226,10 +226,11 @@ extern "C" {
 
         llama_token  *  token;
         float        *  embd;
-        llama_pos    *  pos;
+        llama_pos    *  pos;      // linearly increasing position for traditional llm
         int32_t      *  n_seq_id;
         llama_seq_id ** seq_id;
         int8_t       *  logits;   // TODO: rename this to "output"
+        llama_pos    *  mrope_pos; // multi-dimensional position for mrope
     } llama_batch;
 
     enum llama_model_kv_override_type {

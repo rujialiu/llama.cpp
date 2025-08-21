@@ -39,16 +39,18 @@ struct llama_ubatch {
     llama_seq_id *  seq_id_unq; // [n_seqs_unq]       | s   | seq_id
     int32_t      *  seq_idx;    // [LLAMA_MAX_SEQ]    | -   | seq_idx
     int8_t       *  output;     // [n_tokens]         | i   | -
+    llama_pos    *  mrope_pos;  // [n_tokens, n_pos_per_embd]     | i   | pos
 
     struct data_t {
         std::vector<llama_token>    token;
         std::vector<float>          embd;
-        std::vector<llama_pos>      pos;
+        std::vector<llama_pos>      pos;       // linearly increasing position for traditional llm
         std::vector<int32_t>        n_seq_id;
         std::vector<llama_seq_id *> seq_id;
         std::vector<llama_seq_id>   seq_id_unq;
         std::vector<int32_t>        seq_idx;
         std::vector<int8_t>         output;
+        std::vector<llama_pos>      mrope_pos;  // multi-dimensional position for mrope
     };
 
     // the llama_ubatch pointers above point to this data if set. otherwise - points to non-owning data

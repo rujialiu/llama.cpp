@@ -64,6 +64,7 @@ struct decode_embd_batch {
     std::vector<llama_seq_id>   seq_id_0;
     std::vector<llama_seq_id *> seq_ids;
     std::vector<int8_t>         logits;
+    std::vector<llama_pos>      batch_pos;
     llama_batch batch;
     decode_embd_batch(float * embd, int32_t n_tokens, int n_pos_per_embd, int n_mmproj_embd) : n_pos_per_embd(n_pos_per_embd), n_mmproj_embd(n_mmproj_embd) {
         pos     .resize(n_tokens * n_pos_per_embd);
@@ -72,14 +73,16 @@ struct decode_embd_batch {
         logits  .resize(n_tokens);
         seq_id_0.resize(1);
         seq_ids [n_tokens] = nullptr;
+        batch_pos.resize(n_tokens);
         batch = {
             /*n_tokens       =*/ n_tokens,
             /*tokens         =*/ nullptr,
             /*embd           =*/ embd,
-            /*pos            =*/ pos.data(),
+            /*pos            =*/ batch_pos.data(),
             /*n_seq_id       =*/ n_seq_id.data(),
             /*seq_id         =*/ seq_ids.data(),
             /*logits         =*/ logits.data(),
+            /*mrope_pos      =*/ pos.data() ,
         };
     }
 
@@ -107,6 +110,7 @@ struct decode_embd_batch {
             }
         }
         for (int i = 0; i < batch.n_tokens; i++) {
+            batch.pos     [i] = pos_0 + i;
             batch.n_seq_id[i] = 1;
             batch.seq_id  [i] = seq_id_0.data();
             batch.logits  [i] = false;
@@ -124,6 +128,7 @@ struct decode_embd_batch {
             pos[i + batch.n_tokens * 3] = 0; // last pos dim is unused
         }
         for (int i = 0; i < batch.n_tokens; i++) {
+            batch.pos     [i] = pos_0 + i;
             batch.n_seq_id[i] = 1;
             batch.seq_id  [i] = seq_id_0.data();
             batch.logits  [i] = false;
@@ -156,10 +161,11 @@ struct decode_embd_batch {
             /*n_tokens       =*/ n_tokens,
             /*tokens         =*/ nullptr,
             /*embd           =*/ batch.embd     + offset * n_mmproj_embd,
-            /*pos            =*/ pos_ptr,
+            /*pos            =*/ batch.pos      + offset,
             /*n_seq_id       =*/ batch.n_seq_id + offset,
             /*seq_id         =*/ batch.seq_id   + offset,
             /*logits         =*/ batch.logits   + offset,
+            /*mrope_pos      =*/ pos_ptr,
         };
     }
 };
